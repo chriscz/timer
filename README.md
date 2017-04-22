@@ -16,6 +16,9 @@ As simple as:
 ```
 python timer.py
 ```
+### Setting Time
+1. Scroll over the seconds, minutes or hours while the timer is paused to set each.
+2. Click on the timer to pause/start it.
 
 ## Known Issues
 - Need to build in time correction (ticker might be off by a few miliseconds, and that adds up)

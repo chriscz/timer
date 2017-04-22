@@ -16,12 +16,22 @@ GRIP_COLOUR = 'orange'
 TIMER_ACTIVE_COLOUR = 'black'
 TIMER_INACTIVE_COLOUR = 'gray'
 
+
+class FauxEvent(object):
+    def __init__(self, num):
+        self.num = num
+
+
+CLICK_EVENT = FauxEvent(1)
+
+
 def scroll_type(event):
     if event.num == 5 or event.delta == -120:
         return -1
     if event.num == 4 or event.delta == 120:
         return 1
     raise RuntimeError('Unknown scroll event, file bugreport: %s' % event)
+
 
 def bind_scroll(obj, listener):
     def fire_listener(event):
@@ -32,6 +42,7 @@ def bind_scroll(obj, listener):
     else:
         obj.bind('<Button-4>', fire_listener)
         obj.bind('<Button-5>', fire_listener)
+
 
 def convert(seconds):
     """
@@ -45,6 +56,7 @@ def convert(seconds):
 
     return s, int(m/60), int(h/(60*60)), r - (s + m + h)
 
+
 class Toggle(object):
     def __init__(self, init, other):
         self._init = (init, other)
@@ -56,6 +68,7 @@ class Toggle(object):
 
     def reset(self):
         self.value, self.other = self._init
+
 
 class Timer(tk.Tk):
     def __init__(self):
@@ -76,8 +89,8 @@ class Timer(tk.Tk):
         screen_width = self.winfo_screenwidth()
         screen_height = self.winfo_screenheight()
 
-        h = 200 or 50
-        w = 500 or 160
+        h = 150
+        w = 100
 
         x = screen_width - (w + 5)
         self.max_y = screen_height - (h + 40)
@@ -87,11 +100,28 @@ class Timer(tk.Tk):
         self.resizable(False, True)
 
         self.frame = tk.Frame(self)
-        self.frame.grid(row=0, column=0, sticky='W')
+        self.frame.grid(row=0, column=0, sticky='WE')
 
-        self.button_add = tk.Label(self, text='Add', font=(FONT_NAME, ADD_SIZE))
-        self.button_add.grid(column=0, row=1)
+        # Control Buttons
+        self.button_frame = tk.Frame(self)
+        self.button_frame.grid(column=0, row=1, columnspan=2,  sticky='WE')
+
+        self.button_add = tk.Label(self.button_frame, text='+', font=(FONT_NAME, ADD_SIZE))
+        self.button_add.grid(column=0, row=0, sticky='WE')
         self.button_add.bind("<Button-1>", self.create_counter)
+
+        self.button_start = tk.Label(self.button_frame, text='Start', font=(FONT_NAME, ADD_SIZE))
+        self.button_start.grid(column=1, row=0, sticky='WE')
+        self.button_start.bind("<Button-1>", self.start_all)
+
+        self.button_stop = tk.Label(self.button_frame, text='Pause', font=(FONT_NAME, ADD_SIZE))
+        self.button_stop.grid(column=2, row=0, sticky='WE')
+        self.button_stop.bind("<Button-1>", self.pause_all)
+
+
+        self.button_frame.columnconfigure(0, weight=1)
+        self.button_frame.columnconfigure(1, weight=1)
+        self.button_frame.columnconfigure(2, weight=1)
 
         self.columnconfigure(0, weight=1)
 
@@ -117,6 +147,16 @@ class Timer(tk.Tk):
         x = self.winfo_x() + deltax
         y = self.winfo_y() + deltay
         self.geometry("+%s+%s" % (x, y))
+
+    def pause_all(self, event=None):
+        for c in self.counters:
+            if not c['counter'].paused:
+                c['counter'].clicked(CLICK_EVENT) 
+
+    def start_all(self, event=None):
+        for c in self.counters:
+            if c['counter'].paused:
+                c['counter'].clicked(CLICK_EVENT) 
 
     def create_counter(self, event=None):
         frame =  tk.Frame(self.frame)
