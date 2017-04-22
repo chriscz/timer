@@ -73,6 +73,7 @@ class Toggle(object):
 class Timer(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
+        self.wm_title('Timer')
         # TODO build in time correction
         self.counters = []
 
@@ -302,5 +303,6 @@ def main():
     app = Timer()
     app.create_counter()
     app.mainloop()
+    app.destroy()
 
 main()
